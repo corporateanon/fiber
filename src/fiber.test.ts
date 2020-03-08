@@ -4,7 +4,7 @@ import { fun, wait } from "./fiber";
 
 describe("Fiber", () => {
     it("should run", async () => {
-        const get = fun(axios.get, "axios.get");
+        const get = fun(axios.get);
 
         await wait(() => {
             const httpBinResponse = get(
@@ -15,7 +15,7 @@ describe("Fiber", () => {
     });
 
     it("should fail", () => {
-        const get = fun(axios.get, "axios.get");
+        const get = fun(axios.get);
 
         expect(
             wait(() => {
@@ -27,7 +27,7 @@ describe("Fiber", () => {
     it("should fail on regular promises thrown", () => {
         const throwNormalPromise = fun(() => {
             throw new Promise(res => res(1));
-        }, "throwNormalPromise");
+        });
 
         expect(
             wait(() => {
@@ -37,12 +37,12 @@ describe("Fiber", () => {
     });
 
     it("should re-evaluate idempotent function if it is called multiple times in wait", async () => {
-        const get = fun(axios.get, "axios.get");
+        const get = fun(axios.get);
 
         const logSpy = jest.fn();
         const log = fun(data => {
             logSpy(data);
-        }, "console.log");
+        });
 
         await wait(() => {
             log(get("https://example.com").status);
@@ -72,7 +72,7 @@ describe("Fiber", () => {
     it("should return correct values", async () => {
         const square = fun((x: number): number => {
             return x * x;
-        }, "square");
+        });
         let results: number[] = [];
         await wait(() => {
             const a = square(2);
@@ -90,7 +90,7 @@ Array [
     it("should run in parallel without a mess", async () => {
         const sleepAndReturn = fun(<T>(delay: number, value: T) => {
             return new Promise(res => setTimeout(() => res(value), delay));
-        }, "sleepAndReturn");
+        });
 
         const fib1 = () => {
             return [sleepAndReturn(100, 1), sleepAndReturn(50, 2)];
@@ -112,5 +112,12 @@ Array [
   ],
 ]
 `);
+    });
+
+    it("should fail when fiber job is called outside of a fiber", () => {
+        const f = fun(() => 1);
+        expect(f).toThrowErrorMatchingInlineSnapshot(
+            `"Cannot be called outside of a fiber"`
+        );
     });
 });

@@ -49,8 +49,7 @@ class FiberState {
 class InterruptionPromise<T> extends Promise<T> {}
 
 export function fun<Result, Args extends any[]>(
-    f: (...args: Args) => Result | Promise<Result>,
-    _logName: string
+    f: (...args: Args) => Result | Promise<Result>
 ) {
     const functionId = uid();
 
