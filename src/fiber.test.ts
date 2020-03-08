@@ -23,6 +23,18 @@ describe("Fiber", () => {
         ).rejects.toMatchObject({ code: "ENOTFOUND" });
     });
 
+    it("should fail on regular promises thrown", () => {
+        const throwNormalPromise = fun(() => {
+            throw new Promise(res => res(1));
+        }, "throwNormalPromise");
+
+        expect(
+            wait(() => {
+                throwNormalPromise();
+            })
+        ).rejects.toBeInstanceOf(Promise);
+    });
+
     it("should re-evaluate idempotent function if it is called multiple times in wait", async () => {
         const get = fun(axios.get, "axios.get");
 
@@ -54,5 +66,50 @@ describe("Fiber", () => {
               ],
             ]
         `);
+    });
+
+    it("should return correct values", async () => {
+        const square = fun((x: number): number => {
+            return x * x;
+        }, "square");
+        let results: number[] = [];
+        await wait(() => {
+            const a = square(2);
+            const b = square(5);
+            results = [a, b];
+        });
+        expect(results).toMatchInlineSnapshot(`
+Array [
+  4,
+  25,
+]
+`);
+    });
+
+    it("should run in parallel without a mess", async () => {
+        const sleepAndReturn = fun(<T>(delay: number, value: T) => {
+            return new Promise(res => setTimeout(() => res(value), delay));
+        }, "sleepAndReturn");
+
+        const fib1 = () => {
+            return [sleepAndReturn(100, 1), sleepAndReturn(50, 2)];
+        };
+        const fib2 = () => {
+            return [sleepAndReturn(50, 3), sleepAndReturn(100, 4)];
+        };
+
+        expect(await Promise.all([wait(fib1), wait(fib2)]))
+            .toMatchInlineSnapshot(`
+Array [
+  Array [
+    1,
+    2,
+  ],
+  Array [
+    3,
+    4,
+  ],
+]
+`);
     });
 });
