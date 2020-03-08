@@ -1,3 +1,4 @@
+// tslint:disable-next-line:no-implicit-dependencies
 import axios from "axios";
 import { fun, wait } from "./fiber";
 
