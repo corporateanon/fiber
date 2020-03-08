@@ -87,7 +87,7 @@ export function fun<Result, Args extends any[]>(
     return callableFunc;
 }
 
-export async function wait<Result>(func: () => Result) {
+export async function wait<Result>(func: () => Result): Promise<Result> {
     const id = uid();
     const thisFiber = new FiberState();
     fibers[id] = thisFiber;
